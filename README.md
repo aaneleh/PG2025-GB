@@ -1,4 +1,4 @@
-#🌸 Jogo Isométrico – Coletando Flores
+# 🌸 Jogo Isométrico – Coletando Flores
 
 ## Objetivo
 O jogador controla um personagem que se move por um mundo isométrico representado por tiles. O objetivo principal é coletar todas as flores espalhadas pelo mapa, evitando obstáculos como água e lava. Ao pisar em determinadas áreas, o terreno pode mudar de cor **(troca de tile).** Quando o jogador coletar todas as flores, ele vence o jogo.
