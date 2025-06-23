@@ -47,7 +47,7 @@ struct Tile
     float ds, dt;
 };
 
-Sprite vampirao;
+Sprite personagem;
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 int setupShader();
@@ -111,7 +111,7 @@ int main()
 	glfwWindowHint(GLFW_SAMPLES, 8);
 
 	// Criação da janela GLFW
-	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Ola Triangulo! -- Rossana", nullptr, nullptr);
+	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Jogo coleta - GrauB", nullptr, nullptr);
 	if (!window)
 	{
 		std::cerr << "Falha ao criar a janela GLFW" << std::endl;
@@ -146,19 +146,19 @@ int main()
 
 	//Carregando uma textura 
 	int imgWidth, imgHeight;
-	GLuint vampiraoID = loadTexture("../assets/sprites/Vampires1_Walk_full.png",imgWidth,imgHeight);
+	GLuint personagemID = loadTexture("../assets/sprites/sprite_full.png",imgWidth,imgHeight);
 
     GLuint texID = loadTexture("../assets/tilesets/tilesetIso.png", imgWidth, imgHeight);
 	// Gerando um buffer simples, com a geometria de um triângulo
  
-	vampirao.nAnimations = 4;
-	vampirao.nFrames = 6;
-	vampirao.VAO = setupSprite(vampirao.nAnimations,vampirao.nFrames,vampirao.ds,vampirao.dt);
-	vampirao.position = vec3(0, 0, 1.0); // posições corretas adicionadas no looping conforme a posição do tile inicial
-	vampirao.dimensions = vec3(150, 150, 1.0);
-	vampirao.texID = vampiraoID;
-	vampirao.iAnimation = 1;
-	vampirao.iFrame = 0;
+	personagem.nAnimations = 4;
+	personagem.nFrames = 10;
+	personagem.VAO = setupSprite(personagem.nAnimations,personagem.nFrames,personagem.ds,personagem.dt);
+	personagem.position = vec3(0, 0, 1.0); // posições corretas adicionadas no looping conforme a posição do tile inicial
+	personagem.dimensions = vec3(80, 80, 1.0);
+	personagem.texID = personagemID;
+	personagem.iAnimation = 1;
+	personagem.iFrame = 0;
     
      for (int i = 0; i < 7; i++)
     {
@@ -247,48 +247,48 @@ int main()
         float x = 0;
         float y = 0;
 
-        if(vampirao.tileMapLine > TILEMAP_HEIGHT){
-            vampirao.tileMapLine = TILEMAP_HEIGHT;
+        if(personagem.tileMapLine > TILEMAP_HEIGHT){
+            personagem.tileMapLine = TILEMAP_HEIGHT;
         } 
-        if(vampirao.tileMapLine < 1){
-            vampirao.tileMapLine = 1;
+        if(personagem.tileMapLine < 1){
+            personagem.tileMapLine = 1;
         } 
-        if(vampirao.tileMapColumn > TILEMAP_WIDTH){
-            vampirao.tileMapColumn = TILEMAP_WIDTH;
+        if(personagem.tileMapColumn > TILEMAP_WIDTH){
+            personagem.tileMapColumn = TILEMAP_WIDTH;
         }
-        if(vampirao.tileMapColumn < 1){
-            vampirao.tileMapColumn = 1;
+        if(personagem.tileMapColumn < 1){
+            personagem.tileMapColumn = 1;
         } 
 
-        x = tile_inicial_x + 57 + (vampirao.tileMapColumn - vampirao.tileMapLine) * 57;
-        y = tile_inicial_y + (vampirao.tileMapColumn + vampirao.tileMapLine) * 28.5;
+        x = tile_inicial_x + 57 + (personagem.tileMapColumn - personagem.tileMapLine) * 57;
+        y = tile_inicial_y + (personagem.tileMapColumn + personagem.tileMapLine) * 28.5;
 
-        vampirao.position.x = x;
-        vampirao.position.y = y;
+        personagem.position.x = x;
+        personagem.position.y = y;
 
-		// Desenho do vampirao
+		// Desenho do personagem
 		model = mat4(1);
-		model = translate(model, vampirao.position);
+		model = translate(model, personagem.position);
 		model = rotate(model, radians(0.0f), vec3(0.0, 0.0, 1.0));
-		model = scale(model,vampirao.dimensions);
+		model = scale(model,personagem.dimensions);
 		glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
 
 		vec2 offsetTex;
 		
 			if (deltaT >= 1.0/FPS)
 			{
-				if(vampirao.isWalking) {
-				vampirao.iFrame = (vampirao.iFrame + 1) % vampirao.nFrames; // incremento "circular"
+				if(personagem.isWalking) {
+				personagem.iFrame = (personagem.iFrame + 1) % personagem.nFrames; // incremento "circular"
 				}
 				lastTime = currTime;
 			}
 		
-		offsetTex.s = vampirao.iFrame * vampirao.ds;
-		offsetTex.t = (vampirao.iAnimation) * vampirao.dt;
+		offsetTex.s = personagem.iFrame * personagem.ds;
+		offsetTex.t = (personagem.iAnimation) * personagem.dt;
 		glUniform2f(glGetUniformLocation(shaderID, "offsetTex"),offsetTex.s, offsetTex.t);
 
-		glBindVertexArray(vampirao.VAO);
-		glBindTexture(GL_TEXTURE_2D, vampirao.texID);
+		glBindVertexArray(personagem.VAO);
+		glBindTexture(GL_TEXTURE_2D, personagem.texID);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -301,56 +301,56 @@ int main()
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
-	vampirao.isWalking = true;
+	personagem.isWalking = true;
 
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
 	glfwSetWindowShouldClose(window, GL_TRUE);
 	}
 
 	if (action != GLFW_PRESS && action != GLFW_REPEAT){
-		vampirao.isWalking = false;
+		personagem.isWalking = false;
 	} 
 	
     if (key == GLFW_KEY_LEFT && action == GLFW_PRESS){
-        vampirao.iAnimation = 3;
-        vampirao.tileMapColumn -= 1;
+        personagem.iAnimation = 2;
+        personagem.tileMapColumn -= 1;
     }
     if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS){
-        vampirao.iAnimation = 4;
-        vampirao.tileMapColumn += 1;
+        personagem.iAnimation = 4;
+        personagem.tileMapColumn += 1;
     }
     if (key == GLFW_KEY_UP && action == GLFW_PRESS){
-        vampirao.iAnimation = 2;
-        vampirao.tileMapLine += 1;
+        personagem.iAnimation = 3;
+        personagem.tileMapLine += 1;
     }
     if (key == GLFW_KEY_DOWN && action == GLFW_PRESS){
-        vampirao.iAnimation = 1;
-        vampirao.tileMapLine -= 1;
+        personagem.iAnimation = 1;
+        personagem.tileMapLine -= 1;
     }	
 
     if (key == GLFW_KEY_A && action == GLFW_PRESS)
     {
-        vampirao.iAnimation = 3;
-        vampirao.tileMapLine += 1;
-        vampirao.tileMapColumn -= 1;
+        personagem.iAnimation = 2;
+        personagem.tileMapLine += 1;
+        personagem.tileMapColumn -= 1;
     }
     if (key == GLFW_KEY_D && action == GLFW_PRESS)
     {
-        vampirao.iAnimation = 4;
-        vampirao.tileMapLine -= 1;
-        vampirao.tileMapColumn += 1;
+        personagem.iAnimation = 4;
+        personagem.tileMapLine -= 1;
+        personagem.tileMapColumn += 1;
     }
     if (key == GLFW_KEY_W && action == GLFW_PRESS)
     {
-        vampirao.iAnimation = 2;
-        vampirao.tileMapLine += 1;
-        vampirao.tileMapColumn += 1;
+        personagem.iAnimation = 3;
+        personagem.tileMapLine += 1;
+        personagem.tileMapColumn += 1;
     }
     if (key == GLFW_KEY_S && action == GLFW_PRESS)
     {
-        vampirao.iAnimation = 1;
-        vampirao.tileMapLine -= 1;
-        vampirao.tileMapColumn -= 1;
+        personagem.iAnimation = 1;
+        personagem.tileMapLine -= 1;
+        personagem.tileMapColumn -= 1;
     }
     
 }
