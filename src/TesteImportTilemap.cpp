@@ -59,18 +59,11 @@ struct Tile{
     float dt;
 };
 
-vector<Tile> tiles;
+vector<Tile> tiles; //CONTEM OS OBJETIVOS A SEREM RENDERIZADOS
 
-int tilemap[6][8] = {
-    {2, 2, 2, 2, 0, 0, 0, 0},
-    {2, 3, 2, 2, 2, 3, 0, 0},
-    {2, 2, 2, 2, 2, 2, 2, 2},
-    {2, 2, 2, 2, 4, 4, 4, 4},
-    {2, 4, 4, 4, 4, 4, 4, 4},
-    {4, 4, 4, 1, 1, 4, 4, 4}
-};
+vector<int> tilemap; //CONTEM A MATRIZ APENAS COM OS TIPOS DOS TILES
 
-const int VALID_TILES[3] = {0, 1, 2};
+vector<int> VALID_TILES; //LISTA COM OS TILES CAMINHÁVEIS
 
 GLuint createVAOTile(int type, float &ds, float &dt);
 
@@ -96,6 +89,20 @@ GLuint createVAOPlayer(int frame, int animation, float &ds, float &dt);
 
 bool movePlayer(int goalX, int goalY);
 
+struct collectible {
+	GLuint VAO;
+	GLuint texID;
+	//vec3 position;
+	//vec3 dimensions;
+	float ds, dt;
+	//int iAnimation, iFrame;
+	//int nAnimations, nFrames;
+	//bool isWalking = false;
+    int tileMapLine = 1;
+    int tileMapColumn = 1;
+};
+
+vector<collectible> collectibles;
 
 GLuint setupShader();
 
@@ -107,8 +114,6 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 void readMap (string filename) {
 	
 	ifstream file(filename);
-	string currentEl;
-	vector<string> fileContent;
 
 	//PEGA ELEMENTO 1: NOME DO ARQUIVO DE TEXTURA
 	string tilemapFile;
@@ -146,11 +151,10 @@ void readMap (string filename) {
 
     tile.texture = loadTexture(texture, imgWidth, imgHeight);
 
-	vector<string> types;
 	string type;
 	for(int i = 0 ; i < TILEMAP_HEIGHT*TILEMAP_WIDTH; i ++){
 		file >> type;
-		types.push_back(type);
+		tilemap.push_back(stoi(type));
 	}
 
     int x, y;
@@ -158,22 +162,36 @@ void readMap (string filename) {
         for(int j = 0 ; j < TILEMAP_WIDTH; j ++){
             x = (TILE_SIZE*j);
             y = (TILE_SIZE*i);
-            tile.position = vec3(
-                            x-y,
-                            (x+y)/2,
-                            0.0);
-
-			tile.type = stoi(types[i + j*TILEMAP_HEIGHT]);
+            tile.position = vec3(x-y, (x+y)/2, 0.0);
+			tile.type = tilemap[i + j*TILEMAP_HEIGHT];
             tiles.push_back(tile);
-			cout << ">>tile: " << tile.type << endl; 
         }   
     } 
 
-	//Usar para adicionar os tiles caminháveis, vai até o fim do arquivo
-	/* 	while(file >> type){ 
-		types.push_back(type);
-		//cout << ">>Type: " << type << endl;
-	} */
+	//ADICIONA TILES 'CAMINHÁVEIS' PRA CONSTANTE 'VALID_TILES'
+	string currentEl;
+	do {
+		file >> currentEl;
+		if(stoi(currentEl) == -1) break;
+		VALID_TILES.push_back(stoi(currentEl));
+	} while (true);
+
+
+	//CRIA OS COLETÁVEIS
+	collectible collectibleEl;
+	string textureCollectible;
+	file >> textureCollectible;
+	collectibleEl.texID = loadTexture("../assets/" + textureCollectible, imgWidth, imgHeight);
+	collectibleEl.VAO = createVAOPlayer(1, 1, collectibleEl.ds, collectibleEl.dt);
+
+	string posX, posY;
+	while(file >> posX){ 
+		file >> posY;
+		collectibleEl.tileMapLine = stoi(posX);
+		collectibleEl.tileMapColumn = stoi(posY);
+		collectibles.push_back(collectibleEl);
+		//cout << ">>TILELINE: " << collectibleEl.tileMapLine << "\nTILECOLUMN: " << collectibleEl.tileMapColumn << endl;
+	} 
 
 	file.close();
 
@@ -262,6 +280,22 @@ int main(){
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         }
 
+
+		//DESENHA OBJETOS
+		for(int i = 0; i < collectibles.size(); i++){   
+            mat4 model = mat4(1);
+            model = translate(model, vec3(350, 100, 0.0));
+			vec3 objectPosition = vec3(tiles[collectibles[i].tileMapLine+(collectibles[i].tileMapColumn*TILEMAP_WIDTH)].position[0],
+									tiles[collectibles[i].tileMapLine+(collectibles[i].tileMapColumn*TILEMAP_WIDTH)].position[1], 0.0);
+			model = translate(model,objectPosition);
+            model = scale(model,vec3(TILE_SIZE,-TILE_SIZE,1.0));
+            glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, value_ptr(model));
+            glUniform2f(glGetUniformLocation(shaderID, "offsetTex"), 1.0, 1.0); 
+            glBindVertexArray(collectibles[i].VAO); // Conectando ao buffer de geometria
+            glBindTexture(GL_TEXTURE_2D, collectibles[i].texID); // Conectando ao buffer de textura
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        }
+
 		player.position = vec3(tiles[playerTileX+(playerTileY*TILEMAP_WIDTH)].position[0], tiles[playerTileX+(playerTileY*TILEMAP_WIDTH)].position[1], 0.0);
 
 		mat4 model = mat4(1);
@@ -309,12 +343,19 @@ bool movePlayer(int goalX, int goalY){
 		return false;
 	}
 
-	int tileType =  tilemap[goalY][goalX];
-
-	for(int i = 0; i < sizeof(VALID_TILES); i++){
+	int tileType =  tilemap[goalY + goalX*TILEMAP_HEIGHT];
+	
+	//SE O TILE FOR CAMINHÁVEL, PLAYER ANDA
+	for(int i = 0; i < VALID_TILES.size(); i++){
 		if(VALID_TILES[i] == tileType){
 			playerTileX = fmax(0, fmin(goalX, TILEMAP_WIDTH-1));
 			playerTileY = fmax(0, fmin(goalY, TILEMAP_HEIGHT-1)); 
+
+			//SE TILE = 0 (terra) MUDA PRA 2 (grama)
+			if(tileType == 0) {
+				tilemap[goalY + goalX*TILEMAP_HEIGHT] = 2;
+				tiles[goalX + goalY*TILEMAP_HEIGHT].type = 2;
+			}
 			return true;
 		}
 	}
