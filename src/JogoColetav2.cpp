@@ -99,12 +99,15 @@ int setupShader();
 int loadTexture(string filePath, int &width, int &height);
 
 
-const GLuint WIDTH = 800, HEIGHT = 600;
+const GLuint WIDTH = 1000, HEIGHT = 800;
 
 int TILEMAP_WIDTH = 15;
 int TILEMAP_HEIGHT = 15;
 
-int teste[1][2] = { 1, 1};
+int t_width;
+int t_height;
+
+
 // Matriz de itens: 0 = nada, 1 = item, 2 = obstáculo
 int itens[5][5] = {
     0, 1, 0, 0, 2,
@@ -117,8 +120,8 @@ int itens[5][5] = {
 int itens_coletados = 0;
 int total_itens = 4;
 
-float tile_inicial_x = 400 - 57; // centro do eixo x - o valor da metade da largura para centralizar o tilemap na janela
-float tile_inicial_y = 600 / TILEMAP_HEIGHT + 28.5; // divisão da altura da janela pela quantidade de linhas + metade do valor da altura para centralizar o tilemap também no eixo y
+float tile_inicial_x; // centro do eixo x - o valor da metade da largura para centralizar o tilemap na janela
+float tile_inicial_y; // divisão da altura da janela pela quantidade de linhas + metade do valor da altura para centralizar o tilemap também no eixo y
 
 vector<int> map;
 
@@ -145,20 +148,26 @@ int main(){
 	GLuint shaderID = setupShader();
 	glUseProgram(shaderID);
 
+	readMap("../src/tilemap.txt");
+	tile_inicial_x = 400 - t_height; // centro do eixo x - o valor da metade da largura para centralizar o tilemap na janela
+	tile_inicial_y = (600 / TILEMAP_HEIGHT) + t_height/2; // divisão da altura da janela pela quantidade de linhas + metade do valor da altura para centralizar o tilemap também no eixo y
+	
+	std::cout << "X: " << tile_inicial_x << std::endl;
+	std::cout << "Y: " << tile_inicial_y << std::endl;
 	//CARREGANDO PERSONAGEM
 	int imgWidth, imgHeight;
 	personagem.nAnimations = 4;
 	personagem.nFrames = 10;
 	personagem.VAO = setupSprite(personagem.nAnimations,personagem.nFrames,personagem.ds,personagem.dt);
 	personagem.position = vec3(0, 0, 1.0);
-	personagem.dimensions = vec3(80, 80, 1.0);
+	personagem.dimensions = vec3(35, 35, 1.0);
 	GLuint personagemID = loadTexture("../assets/sprites/sprite_full.png",imgWidth,imgHeight);
 	personagem.texID = personagemID;
 	personagem.iAnimation = 1;
 	personagem.iFrame = 0;
     
 	//CARRENGADO TILESET
-	readMap("../src/tilemap.txt");
+	
 
 
 	//ATIVANDO TEXTURA
@@ -221,15 +230,15 @@ int main(){
             personagem.tileMapColumn = 1;
         } 
 
-        x = tile_inicial_x + 57 + (personagem.tileMapColumn - personagem.tileMapLine) * 57;
-        y = tile_inicial_y + (personagem.tileMapColumn + personagem.tileMapLine) * 28.5;
+        x = tile_inicial_x + t_height + (personagem.tileMapColumn - personagem.tileMapLine) * t_height;
+        y = tile_inicial_y + (personagem.tileMapColumn + personagem.tileMapLine) * (t_height/2);
 
         personagem.position.x = x;
         personagem.position.y = y;
 
 		// Lógica de coleta
-		int lin = personagem.tileMapLine - 1;
-		int col = personagem.tileMapColumn - 1;
+		int lin = 1;
+		int col = 1;
 
 		if (lin >= 0 && lin < TILEMAP_HEIGHT && col >= 0 && col < TILEMAP_WIDTH){
 			if (map[lin + col * TILEMAP_HEIGHT] == 4) {
@@ -352,7 +361,10 @@ void readMap(string filename) {
 	//DIMENSOES TILE
 	string tile_height, tile_width;
 	file >> tile_height;    
-	file >> tile_width;    
+	file >> tile_width;
+	
+	t_height = stoi(tile_height);
+	t_width = stoi(tile_width);
 
     for (int i = 0; i < stoi(num_tiles); i++){
         Tile tile;
@@ -490,9 +502,8 @@ void desenharMapa(GLuint shaderID){
 
             Tile curr_tile = tileset[map[i + j * TILEMAP_HEIGHT]];
 
-            model = translate(model, vec3(370, 100, 0.0));
-            float x = (j - i) * curr_tile.dimensions.x/2.0;
-            float y = (i + j) * curr_tile.dimensions.y/2.0;
+            float x = tile_inicial_x + (j - i) * curr_tile.dimensions.x/2.0;
+            float y = tile_inicial_y + (i + j) * curr_tile.dimensions.y/2.0;
         
             model = translate(model, vec3(x, y, 0.0));
             model = scale(model, curr_tile.dimensions);
