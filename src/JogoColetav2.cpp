@@ -161,7 +161,7 @@ int main(){
 	personagem.nFrames = 10;
 	personagem.VAO = setupVAOSprite(personagem.nAnimations,personagem.nFrames,personagem.ds,personagem.dt);
 	personagem.position = vec3(0, 0, 1.0);
-	personagem.dimensions = vec3(30, 30, 1.0);
+	personagem.dimensions = vec3(35, 35, 1.0);
 	GLuint personagemID = loadTexture("../assets/sprites/sprite_full.png",imgWidth,imgHeight);
 	personagem.texID = personagemID;
 	personagem.iAnimation = 1;
