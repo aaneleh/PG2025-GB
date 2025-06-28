@@ -127,7 +127,6 @@ int loadTexture(string filePath, int &width, int &height);
 
 const GLuint WIDTH = 1000, HEIGHT = 800;
 
-
 int main(){
 
 	glfwInit();
@@ -154,7 +153,7 @@ int main(){
 	readConfigFile("../src/tilemap.txt");
 
 	tile_inicial_x = 400 - t_height; // centro do eixo x - o valor da metade da largura para centralizar o tilemap na janela
-	tile_inicial_y = (600 / TILEMAP_HEIGHT) + t_height/2; // divisão da altura da janela pela quantidade de linhas + metade do valor da altura para centralizar o tilemap também no eixo y
+	tile_inicial_y = (600 / TILEMAP_HEIGHT) + t_height; // divisão da altura da janela pela quantidade de linhas + metade do valor da altura para centralizar o tilemap também no eixo y
 	
 	//CARREGANDO PERSONAGEM
 	int imgWidth, imgHeight;
@@ -162,7 +161,7 @@ int main(){
 	personagem.nFrames = 10;
 	personagem.VAO = setupVAOSprite(personagem.nAnimations,personagem.nFrames,personagem.ds,personagem.dt);
 	personagem.position = vec3(0, 0, 1.0);
-	personagem.dimensions = vec3(35, 35, 1.0);
+	personagem.dimensions = vec3(30, 30, 1.0);
 	GLuint personagemID = loadTexture("../assets/sprites/sprite_full.png",imgWidth,imgHeight);
 	personagem.texID = personagemID;
 	personagem.iAnimation = 1;
