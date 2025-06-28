@@ -88,7 +88,7 @@ cogumelo.png
 
 ## Complementando a lógica | 🍄 Jogo Isométrico – Coletando Cogumelos
  
-  Basta alterar o mapa, adicionar/remover itens, mudar os tiles caminháveis ou até o tileset, sem tocar no código.
+   Através do arquivo de configuração é possível alterar o mapa, adicionar/remover itens, mudar os tiles caminháveis ou até o tileset, sem tocar no código.
 - **A lógica de movimentação impede sair do mapa ou andar em obstáculo.**
 - **A coleta, troca de tile e objetivo são processados a cada movimento:**  
   Ao mover, o código checa se há item para coletar, se o tile precisa ser trocado, e se venceu.
